@@ -33,7 +33,9 @@ export function setupInstall() {
     status.textContent = '正在准备离线雨声…';
     try {
       const registration = await navigator.serviceWorker.register(new URL('../sw.js', import.meta.url));
-      const showUpdate = () => { if (registration.waiting) update.hidden = false; };
+      const showUpdate = () => {
+        update.hidden = !(registration.waiting && navigator.serviceWorker.controller);
+      };
       showUpdate();
       registration.addEventListener('updatefound', () => {
         registration.installing?.addEventListener('statechange', showUpdate);
@@ -45,6 +47,7 @@ export function setupInstall() {
         registration.waiting.postMessage({ type: 'ACTIVATE_UPDATE' });
       });
       navigator.serviceWorker.addEventListener('controllerchange', () => {
+        showUpdate();
         if (updating) location.reload();
       });
       const installing = registration.installing;
