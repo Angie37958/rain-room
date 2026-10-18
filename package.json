@@ -1,0 +1,16 @@
+{
+  "name": "rain-room",
+  "version": "0.9.0",
+  "private": true,
+  "description": "A private, local-first rain companion for focus and rest.",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "dev": "node scripts/serve.mjs",
+    "test": "node --test",
+    "check": "node scripts/check.mjs",
+    "build": "node scripts/build.mjs",
+    "preview": "node scripts/serve.mjs --dist"
+  },
+  "license": "MIT"
+}

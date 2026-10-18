@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#c5d4ae">
+  <meta name="description" content="听雨 Rain Room：免费的本地优先专注工具。用雨声陪伴工作，用一句话放下杂念。无需账号，零运行依赖。">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./assets/icon-192.png">
+  <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./src/style.css">
+  <link rel="stylesheet" href="./src/scene-themes.css">
+  <title>听雨 · Rain Room</title>
+</head>
+<body>
+  <canvas id="rain" aria-hidden="true"></canvas>
+  <div class="veil" aria-hidden="true"></div>
+  <a class="skip-link" href="#workspace">跳转到专注计时</a>
+  <header class="header">
+    <a class="brand" href="./" aria-label="听雨首页"><span class="brand-mark" aria-hidden="true">☂</span><span>听雨<small>RAIN ROOM</small></span></a>
+    <span class="header-caption">给注意力，一处安静的落点。</span>
+    <div class="toolbar">
+      <button id="sound" class="quiet-button" aria-pressed="false">开启声音</button>
+      <button id="fullscreen" class="icon-button" aria-label="切换全屏" title="切换全屏">⛶</button>
+      <button id="immerse" class="quiet-button" aria-pressed="false" title="快捷键 H">沉浸</button>
+    </div>
+  </header>
+  <main id="workspace" tabindex="-1">
+    <section class="focus-space" aria-labelledby="focus-heading">
+      <div class="intro"><span class="eyebrow">LESS NOISE. MORE SPACE.</span><h1 id="focus-heading">此刻，只做一件事。</h1><p id="scene-description">在明亮的树影里，把注意力慢慢找回来。</p></div>
+      <div class="timer-card">
+        <div class="mode-switch" role="group" aria-label="计时模式"><button id="focus-mode" class="selected" aria-pressed="true">专注</button><button id="break-mode" aria-pressed="false">休息</button></div>
+        <label for="task" class="sr-only">这一轮想做什么</label><input id="task" class="task-input" maxlength="80" placeholder="这一轮，想完成什么？" autocomplete="off">
+        <div id="timer" class="timer" role="timer" aria-label="剩余时间" aria-live="off">25:00</div>
+        <div class="duration-row"><label for="duration">本轮时长</label><input id="duration" type="number" min="1" max="180" step="1" value="25"><span>分钟</span><span id="timer-state" class="state-pill">准备好了再开始</span></div>
+        <div class="timer-actions"><button id="start" class="primary-button">开始专注 <span aria-hidden="true">↗</span></button><button id="reset" class="secondary-button">重置</button></div>
+        <p class="timer-note" id="timer-note">不必一次做完，先给它 25 分钟。</p>
+        <div class="completion" id="completion" hidden><p id="completion-text"></p><button id="next-session" class="secondary-button">休息 5 分钟</button></div>
+      </div>
+      <div class="daily-summary" aria-label="今日专注统计"><div><strong id="today-minutes">0</strong><span>分钟 · 今日专注</span></div><span class="divider"></span><div><strong id="today-sessions">0</strong><span>轮 · 已完成</span></div><p>一点一点，也在向前。</p></div>
+      <div class="release-water" aria-hidden="true"><div class="water-words" id="water-words"></div></div>
+    </section>
+    <aside class="side-panel" aria-label="雨景与休息工具">
+      <details class="panel weather-panel" open><summary><span><span class="section-index">01 /</span> 此刻的氛围</span><span aria-hidden="true">⌄</span></summary><div class="panel-body">
+        <label class="scene-label" for="scene">此刻想坐在哪里</label><select id="scene" class="scene-select" aria-describedby="scene-mood"><optgroup label="四季"><option value="spring">樱花 · 想重新开始</option><option value="pond">荷塘 · 想放慢一点</option><option value="forest">秋林 · 想找回一点温暖</option><option value="lake">冻湖 · 想留点空白</option></optgroup><optgroup label="日夜"><option value="day">晴日 · 想出去透透气</option><option value="window">窗边 · 想安静待一会儿</option></optgroup></select><p id="scene-mood" class="scene-mood"></p>
+        <div class="presets" role="group" aria-label="雨景预设"><button data-preset="drizzle">细雨</button><button data-preset="night" class="selected">中雨</button><button data-preset="storm">骤雨</button></div>
+        <label class="slider-label" for="amount"><span id="amount-label">雨量</span><output id="amount-value" for="amount">65%</output></label><input id="amount" type="range" min="5" max="100" value="65">
+        <label class="slider-label" for="wind"><span>风向与风力</span><output id="wind-value" for="wind">微风</output></label><input id="wind" type="range" min="-100" max="100" value="12">
+        <label class="slider-label" for="light"><span id="light-label">环境亮度</span><output id="light-value" for="light">75%</output></label><input id="light" type="range" min="15" max="100" value="75">
+        <label class="slider-label" for="volume"><span>环境音量</span><output id="volume-value" for="volume">40%</output></label><input id="volume" type="range" min="0" max="100" value="40">
+        <label class="slider-label" for="texture"><span id="texture-label">雨滴颗粒</span><output id="texture-value" for="texture">75%</output></label><input id="texture" type="range" min="0" max="100" value="75"><p class="sound-hint" id="sound-hint">柔和雨幕 ↔ 清晰的叶面滴答</p>
+        <div class="setting-row"><label for="motion">场景动态</label><input id="motion" type="checkbox" checked></div>
+        <div class="setting-row"><label for="chime">计时结束时轻响</label><input id="chime" type="checkbox" checked></div>
+        <div class="setting-row"><label for="quality">画面质量</label><select id="quality"><option value="auto">自动</option><option value="low">省电</option><option value="high">细腻</option></select></div>
+      </div></details>
+      <section class="panel let-go" aria-labelledby="let-go-heading"><div class="section-heading"><span class="section-index">02 /</span><h2 id="let-go-heading">把杂念，交给雨</h2></div><p>写下一句暂时放不下的话。<br>看它散开，再回到眼前。</p><form id="release-form"><label class="sr-only" for="thought">想交给雨的一句话</label><textarea id="thought" rows="2" maxlength="60" placeholder="比如：先不担心还没发生的事。"></textarea><div class="release-bottom"><button type="submit" class="text-button">让雨带走 ↗</button></div></form></section>
+      <p class="interaction-hint" id="interaction-hint">在空白处轻点，泛起涟漪。移动指针，轻轻拨开雨。</p>
+    </aside>
+  </main>
+  <div class="immersive-clock" id="immersive-clock" aria-hidden="true"></div>
+  <footer class="footer"><span><span class="privacy-dot" aria-hidden="true"></span>无需账号 · 数据留在本机</span><div><button id="export" class="text-button">导出记录</button><button id="clear" class="text-button">清除本地数据</button><span id="offline-status" class="muted"></span><button id="update-app" class="text-button" hidden>更新听雨</button><button id="install" class="text-button">安装听雨</button><button id="help" class="text-button">使用说明</button></div></footer>
+  <div id="status" class="toast" role="status" aria-live="polite"></div>
+  <dialog id="install-dialog"><button id="close-install" class="dialog-close" aria-label="关闭安装说明">×</button><span class="eyebrow">RAIN ROOM, WITH YOU</span><h2>把听雨，放在桌面。</h2><p>安装后用独立窗口打开。首次联网加载完成，显示“已备好离线雨声”后，就能断网听雨。</p><button id="install-action" class="quiet-button" hidden>安装到设备</button><ul><li>电脑 Chrome / Edge：点击地址栏的安装图标，或浏览器菜单中的“安装听雨”。</li><li>安卓 Chrome：在浏览器菜单中选择“安装应用”或“添加到主屏幕”。</li><li>iPhone / iPad Safari：点击分享，再选“添加到主屏幕”。</li></ul><p class="muted">内置预览浏览器可能不支持安装，请在 Chrome、Edge 或 Safari 中打开。卸载或清除浏览器数据可能同时清除本机专注记录；计时提醒需要保持应用打开。</p></dialog>
+  <dialog id="help-dialog"><button id="close-help" class="dialog-close" aria-label="关闭使用说明">×</button><span class="eyebrow">A SMALL PLACE TO FOCUS</span><h2>让这一小段时间，属于你。</h2><p>选择时长，写下眼前的一件事，再开始。完成一轮后，手动开始休息；这里不会自动催你进入下一轮。</p><ul><li>H：进入 / 退出沉浸；空格：开始 / 暂停计时。输入文字或操作按钮时不会触发快捷键。</li><li>切换标签页后按实际时间计时；画面会暂停绘制以节省资源。退出浏览器后无法发出提醒。</li><li>雨声来自本地打包的 CC0 实录，需要手动开启；樱花与晴日也能听雨，冻湖保留柔和合成风声。计时结束轻响也需要先开启声音；请保持适合自己的音量。</li><li>只统计完整完成的专注轮次，重置不会计入。时长和日期按本机设置计算，页面关闭后不推断过去完成的轮次。</li><li>设置、任务与完成记录存于当前浏览器。杂念文字不保存，无账号、统计追踪或天气接口。</li><li>“减少动态效果”默认关闭动画。也可以手动关闭场景动态，计时与声音照常使用。</li></ul><p class="muted">听雨是专注与放松工具。你随时可以暂停，也可以什么都不做。</p></dialog>
+  <dialog id="clear-dialog"><h2>清除这个浏览器里的数据？</h2><p>将清除完成记录、任务和偏好，并停止当前计时。此操作无法撤销。</p><div class="dialog-actions"><button id="cancel-clear" class="secondary-button">保留数据</button><button id="confirm-clear" class="primary-button">清除数据</button></div></dialog>
+  <script type="module" src="./src/app.js"></script>
+</body>
+</html>
