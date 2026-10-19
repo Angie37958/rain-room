@@ -35,11 +35,13 @@ export class RainScene {
   project(x, y, z) { const s = Math.min(this.width, this.height) * 1.15 / (z + 4); return { x: this.width * .48 + x * s, y: this.height * .42 + (3.1 - y) * s, s }; }
   resetInteraction() {
     this.interaction.reset();
-    for (const particles of [this.drops, this.glassDrops, this.airParticles]) for (const particle of particles) particle.ox = particle.oy = 0;
+    for (const particles of [this.drops, this.glassDrops, this.airParticles]) for (const particle of particles) particle.ox = particle.oy = particle.vx = particle.vy = 0;
   }
   movePointer(x, y, active = true) {
     if (!this.options.motion) return;
-    this.interaction.move(x, y, active); this.requestFrame();
+    this.interaction.move(x, y, active);
+    if (active) this.interaction.wake(x, y, this.width, this.height, this.options.scene);
+    this.requestFrame();
   }
   releasePointer() { this.interaction.release(); }
   disturb(x, y) {
@@ -58,6 +60,7 @@ export class RainScene {
     ctx.drawImage(this.backdrop, 0, 0, W, H);
     if (this.options.scene === 'lake') {
       this.drawAir(dt, 'snow');
+      this.interaction.draw(ctx, W, H, this.options.scene);
       if (this.options.motion) this.requestFrame();
       return;
     }
@@ -95,8 +98,9 @@ export class RainScene {
       const p = this.project(d.x, d.y, d.z), q = this.project(d.x + wind * d.length * .18, d.y - d.length, d.z);
       const bent = this.interaction.bend(d, p.x, p.y, W, H, dt);
       const ox = bent.x - p.x, oy = bent.y - p.y;
+      const bow = Math.min(1, Math.hypot(q.x - p.x, q.y - p.y) / 35);
       ctx.strokeStyle = `rgba(${cool ? '228,244,255' : autumn ? '255,239,207' : '244,255,221'},${(.20 + .45 / (1 + d.z * .12)) * light * (1 - bent.strength * .5)})`; ctx.lineWidth = d.z < 5 ? 1.1 : .7;
-      ctx.beginPath(); ctx.moveTo(bent.x, bent.y); ctx.quadraticCurveTo((p.x + q.x) * .5 + ox * 1.08, (p.y + q.y) * .5 + oy, q.x + ox * .8, q.y + oy * .8); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(bent.x, bent.y); ctx.quadraticCurveTo((p.x + q.x) * .5 + ox * (1 + bow * .025), (p.y + q.y) * .5 + oy, q.x + ox * (1 - bow * .14), q.y + oy); ctx.stroke();
     }
     for (let i = this.rings.length - 1; i >= 0; i--) {
       const ring = this.rings[i]; ring.age += dt;
@@ -125,9 +129,10 @@ export class RainScene {
       const bent = this.interaction.bend(d, baseX, baseY, W, H, dt);
       const { x, y } = bent;
       const length = (7 + d.length * 20) / depth;
+      const curve = (x - baseX) * .10 * Math.min(1, length / 40);
       c.strokeStyle = `rgba(65,99,119,${(.20 + .12 / depth) * this.options.light / 100 * (1 - bent.strength * .5)})`;
       c.lineWidth = .5 + .45 / depth;
-      c.beginPath(); c.moveTo(x, y); c.quadraticCurveTo(x + wind * length * .1 + (x - baseX) * .15, y + length * .5, x + wind * length * .3, y + length); c.stroke();
+      c.beginPath(); c.moveTo(x, y); c.quadraticCurveTo(x + wind * length * .1 + curve, y + length * .5, x + wind * length * .3, y + length); c.stroke();
       c.strokeStyle = 'rgba(255,255,246,.35)'; c.lineWidth = .5;
       c.beginPath(); c.moveTo(x + 1, y); c.lineTo(x + 1 + wind * length * .3, y + length * .65); c.stroke();
     }
@@ -143,10 +148,10 @@ export class RainScene {
   }
   drawAir(dt, kind) {
     const ctx = this.ctx, W = this.width, H = this.height, snow = kind === 'snow', petals = kind === 'petals';
-    const count = Math.floor(snow ? 45 + this.options.amount * 1.8 : petals ? 35 : 12 + this.options.amount * .4);
+    const count = Math.floor(snow ? 45 + this.options.amount * 1.8 : petals ? (this.low ? 90 : 145) : 12 + this.options.amount * .4);
     for (let i = 0; i < Math.min(count, this.airParticles.length); i++) {
       const p = this.airParticles[i];
-      p.y += dt * (snow ? .012 + p.r * .008 : petals ? .018 : -.004);
+      p.y += dt * (snow ? .012 + p.r * .008 : petals ? .010 + p.r * .004 : -.004);
       p.phase += dt * .6;
       p.x += dt * (this.options.wind / 100 * .025 + Math.sin(p.phase) * .006 + (petals ? .009 : 0));
       if (p.y > 1.03) { p.y = -.03; p.x = Math.random(); }
@@ -155,9 +160,16 @@ export class RainScene {
       const bent = this.interaction.bend(p, p.x * W, p.y * H, W, H, dt);
       ctx.fillStyle = snow ? `rgba(247,252,255,${.35 + p.r * .16})` : petals ? ['#f7d7e2b8', '#fbe7ebc9', '#e4b3c3ad'][i % 3] : '#fff4d3a8';
       ctx.beginPath();
-      if (petals) ctx.ellipse(bent.x, bent.y, p.r * 2.4, p.r * .95, Math.sin(p.phase), 0, Math.PI * 2);
-      else ctx.arc(bent.x, bent.y, snow ? p.r : p.r * .6, 0, Math.PI * 2);
-      ctx.fill();
+      if (petals) {
+        ctx.save(); ctx.translate(bent.x, bent.y); ctx.rotate(p.phase * .55);
+        ctx.scale(.7 + Math.sin(p.phase) * .25, 1);
+        const r = p.r * 1.5;
+        ctx.moveTo(0, r * 1.25);
+        ctx.bezierCurveTo(-r * 1.5, 0, -r * 1.1, -r * 1.4, -.2 * r, -r * .8);
+        ctx.quadraticCurveTo(0, -r * .45, r * .2, -r * .8);
+        ctx.bezierCurveTo(r * 1.1, -r * 1.4, r * 1.5, 0, 0, r * 1.25);
+        ctx.fill(); ctx.restore();
+      } else { ctx.arc(bent.x, bent.y, snow ? p.r : p.r * .6, 0, Math.PI * 2); ctx.fill(); }
     }
   }
   drawWindowRain(dt) {
