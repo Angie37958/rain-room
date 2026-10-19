@@ -4,7 +4,7 @@
 
 选一处雨景，听一会儿雨，做完眼前的一件事。也可以什么都不做，把暂时放不下的话交给雨。
 
-[打开听雨](https://angie37958.github.io/rain-room/) · [安装到手机](#安装到手机)
+[打开听雨](https://angie37958.github.io/rain-room/) · [下载安卓安装包](https://github.com/Angie37958/rain-room/releases/download/android-v0.12.1/rain-room-0.12.1.apk) · [手机安装说明](#安装到手机)
 
 ![听雨桌面预览](./docs/images/desktop.jpg)
 
@@ -37,13 +37,19 @@
 
 ## 安装到手机
 
-**[用手机打开听雨](https://angie37958.github.io/rain-room/)**，按下面的步骤添加到主屏幕，就能从「听雨」图标进入。目前没有单独下载的 APK 或 iPhone 安装包。
+安卓可以直接下载安装包；iPhone / iPad 可以通过 Safari 添加到主屏幕。
 
 ### 安卓手机
 
-1. 用 **Chrome** 打开上面的链接。
-2. 点击网页底部「安装听雨」，按提示安装；也可以打开浏览器右上角 **⋮ → 添加到主屏幕 → 安装**。
-3. 回到手机主屏幕，找到「听雨」图标并打开。不同浏览器的菜单名称可能略有不同。
+**[下载听雨 APK（约 1.8 MB）](https://github.com/Angie37958/rain-room/releases/download/android-v0.12.1/rain-room-0.12.1.apk)** · Android 8.0 及以上
+
+1. 在手机上下载 APK，或者从电脑把文件发送到手机。
+2. 在手机上打开下载的文件，按系统提示允许该来源安装，完成安装。
+3. 从桌面「听雨」图标打开。雨景、雨声和计时已包含在包里，可离线使用。
+
+安装包版与浏览器版分别保存记录，不会自动互相导入。尚未在实体手机上测试；如果打开空白，可先更新手机的 Android System WebView 或 Chrome。
+
+不想下载 APK，也可以用 Chrome [打开网页版](https://angie37958.github.io/rain-room/)，点击网页底部「安装听雨」，添加到主屏幕。
 
 ### iPhone / iPad
 
