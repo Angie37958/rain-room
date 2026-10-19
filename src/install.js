@@ -5,6 +5,10 @@ export function setupInstall() {
   const action = document.getElementById('install-action');
   const update = document.getElementById('update-app');
   const status = document.getElementById('offline-status');
+  if (window.RainRoomAndroid) {
+    button.hidden = true; update.hidden = true;
+    status.textContent = '已安装 · 离线可用'; return;
+  }
   let prompt;
   const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
   button.hidden = Boolean(standalone);

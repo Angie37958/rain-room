@@ -3,6 +3,19 @@ import assert from 'node:assert/strict';
 import { setImmediate } from 'node:timers/promises';
 import { setupInstall } from '../src/install.js';
 
+test('bundled Android app hides browser installation and needs no service worker', t => {
+  const elements = Object.fromEntries(['install', 'install-dialog', 'install-action', 'update-app', 'offline-status'].map(id => [id, {}]));
+  for (const [key, value] of Object.entries({ window: { RainRoomAndroid: {} }, document: { getElementById: id => elements[id] } })) {
+    const previous = Object.getOwnPropertyDescriptor(globalThis, key);
+    Object.defineProperty(globalThis, key, { configurable: true, value });
+    t.after(() => { if (previous) Object.defineProperty(globalThis, key, previous); else delete globalThis[key]; });
+  }
+  setupInstall();
+  assert.equal(elements.install.hidden, true);
+  assert.equal(elements['update-app'].hidden, true);
+  assert.equal(elements['offline-status'].textContent, '已安装 · 离线可用');
+});
+
 test('first installation hides update until a newer worker waits; explicit update refreshes once', async t => {
   class Element extends EventTarget { hidden = true; textContent = ''; close() {} }
   const ids = ['install', 'install-dialog', 'install-action', 'update-app', 'offline-status', 'close-install'];

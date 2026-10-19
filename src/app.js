@@ -229,6 +229,9 @@ $('confirm-clear').addEventListener('click', () => {
 $('export').addEventListener('click', () => {
   if (!records.length) { notify('完成第一轮专注后，就可以导出记录。'); return; }
   const csv = '\ufeffdate,minutes,completed_at\r\n' + records.map(record => `${record.date},${record.minutes},${new Date(record.completedAt).toISOString()}`).join('\r\n');
+  if (window.RainRoomAndroid) {
+    window.RainRoomAndroid.exportCsv(csv); notify('请选择专注记录的保存位置。'); return;
+  }
   const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
   const link = document.createElement('a'); link.href = url; link.download = 'rain-room-focus.csv'; document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
   notify('已导出完成记录，不包含任务或杂念文字。');
