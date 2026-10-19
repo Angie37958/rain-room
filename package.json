@@ -1,6 +1,6 @@
 {
   "name": "rain-room",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "private": true,
   "description": "A private, local-first rain companion for focus and rest.",
   "type": "module",

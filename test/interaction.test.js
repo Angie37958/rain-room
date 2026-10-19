@@ -16,29 +16,31 @@ test('water taps stay at their screen-space origin, including near and distant w
   assert.equal(containsWater('spring', 40, 900, 1000, 1000), false);
 });
 
-test('rain opens a visible gap on both sides, then recovers gradually after the pointer leaves', () => {
+test('a resting pointer leaves the rain alone; movement makes only a small local drift', () => {
   const interaction = new RainInteraction(); interaction.move(600, 400);
-  const left = { x: -1 }, right = { x: 1 };
-  for (let frame = 0; frame < 60; frame++) {
+  for (let frame = 0; frame < 60; frame++) interaction.step(1 / 60);
+  assert.equal(interaction.field(620, 400, 1200, 900).strength, 0);
+  const particle = {};
+  let peak = 0;
+  for (let frame = 0; frame < 90; frame++) {
+    interaction.move(600 + Math.sin(frame * .2) * 15, 400);
     interaction.step(1 / 60);
-    interaction.bend(left, 570, 400, 1200, 900, 1 / 60);
-    interaction.bend(right, 630, 400, 1200, 900, 1 / 60);
+    interaction.bend(particle, 620, 400, 1200, 900, 1 / 60);
+    peak = Math.max(peak, Math.abs(particle.ox));
   }
-  assert.ok(left.ox < -45); assert.ok(right.ox > 45);
-  const displaced = right.ox;
-  interaction.release();
-  interaction.step(1 / 60); interaction.bend(right, 630, 400, 1200, 900, 1 / 60);
-  assert.ok(right.ox > displaced * .8, 'recovery must not snap back');
+  assert.ok(peak > .05 && peak < 5, 'motion stays subtle');
+  assert.equal(interaction.field(800, 400, 1200, 900).strength, 0, 'no broad force field');
   for (let frame = 0; frame < 240; frame++) {
-    interaction.step(1 / 60); interaction.bend(right, 630, 400, 1200, 900, 1 / 60);
+    interaction.step(1 / 60);
+    interaction.bend(particle, 620, 400, 1200, 900, 1 / 60);
   }
-  assert.ok(Math.abs(right.ox) < .1);
+  assert.ok(Math.abs(particle.ox) < .1, 'drift fades even while the cursor stays');
 });
 
 test('rapid gestures stay bounded, finite, expire, and do not age during a static frame', () => {
   const interaction = new RainInteraction();
   for (let i = 0; i < 500; i++) { interaction.move(i * 20, 700); interaction.tap(i * 2, 750, 1200, 900, 'forest'); }
-  assert.ok(interaction.trail.length <= 40); assert.ok(interaction.pulses.length <= 12);
+  assert.ok(interaction.pulses.length <= 12);
   interaction.step(0); assert.equal(interaction.pulses[0].age, 0);
   interaction.release();
   const particle = { x: 1 };
@@ -48,20 +50,21 @@ test('rapid gestures stay bounded, finite, expire, and do not age during a stati
     assert.ok(Number.isFinite(result.x)); assert.ok(Number.isFinite(result.y));
     assert.ok(Math.abs(particle.ox) <= 122);
   }
-  assert.equal(interaction.trail.length, 0); assert.equal(interaction.pulses.length, 0);
+  assert.equal(interaction.pulses.length, 0);
   interaction.reset(); assert.equal(interaction.pointer.active, false);
 });
 
-test('cursor motion builds gently and does not flip particle offsets when crossing the pointer', () => {
+test('cursor movement stays continuous and a click does not repel airborne rain', () => {
   const interaction = new RainInteraction(); interaction.move(600, 400);
-  const particle = { x: 1 };
+  interaction.move(610, 400);
+  const particle = {};
   interaction.step(1 / 60); interaction.bend(particle, 630, 400, 1200, 900, 1 / 60);
-  assert.ok(particle.ox > 0 && particle.ox < 1, 'no sudden displacement on the first frame');
-  for (let i = 0; i < 90; i++) { interaction.step(1 / 60); interaction.bend(particle, 630, 400, 1200, 900, 1 / 60); }
+  assert.ok(particle.ox > 0 && particle.ox < 1);
   const before = particle.ox;
   interaction.move(700, 400); interaction.step(1 / 60); interaction.bend(particle, 630, 400, 1200, 900, 1 / 60);
-  assert.ok(Math.abs(particle.ox - before) < 3, 'the existing drift is continuous across a gesture');
-  assert.ok(interaction.pointer.x < 620, 'cursor aura follows with a little inertia');
+  assert.ok(Math.abs(particle.ox - before) < 1);
+  interaction.reset(); interaction.tap(600, 400, 1200, 900, 'day'); interaction.step(.05);
+  assert.equal(interaction.field(630, 400, 1200, 900).strength, 0);
 });
 
 test('a water impulse spreads through a damped height field without runaway energy', () => {

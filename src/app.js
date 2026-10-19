@@ -167,8 +167,49 @@ $('release-form').addEventListener('submit', event => {
   if (!thought) { notify('写下一句想暂时放下的话，再交给雨。'); $('thought').focus(); return; }
   const words = $('water-words');
   words.classList.remove('release'); void words.offsetWidth;
-  words.textContent = thought; words.classList.add('release'); $('thought').value = '';
-  clearTimeout(releaseTimeout); releaseTimeout = setTimeout(() => { words.classList.remove('release'); words.textContent = ''; }, 7100);
+  const effects = $('release-effects'); effects.replaceChildren();
+  if (!reducedMotion.matches && prefs.motion) {
+    for (let i = 0; i < (innerWidth < 720 ? 14 : 22); i++) {
+      const ribbon = document.createElement('i'); ribbon.className = 'release-ribbon';
+      ribbon.style.setProperty('--ribbon-y', `${8 + i * 5}%`);
+      ribbon.style.setProperty('--ribbon-delay', `${1.1 + i * .065}s`);
+      ribbon.style.setProperty('--ribbon-tilt', `${-30 + i * 1.8}deg`);
+      ribbon.style.setProperty('--ribbon-height', `${12 + i % 5 * 7}vh`);
+      effects.append(ribbon);
+    }
+  }
+  words.replaceChildren(...Array.from(thought, character => {
+    const glyph = document.createElement('span'); glyph.className = 'release-glyph';
+    // Aligned slices read as one letter, then wash away at different speeds.
+    for (let slice = 0; slice < 5; slice++) {
+      const fragment = document.createElement('span'); fragment.className = 'release-fragment';
+      fragment.textContent = character;
+      fragment.style.setProperty('--slice-top', `${slice * 20}%`);
+      fragment.style.setProperty('--slice-bottom', `${(4 - slice) * 20}%`);
+      fragment.style.setProperty('--fragment-x', `${(slice % 2 ? -1 : 1) * (35 + Math.random() * 80)}px`);
+      fragment.style.setProperty('--fragment-y', `${25 + slice * 13}px`);
+      fragment.style.setProperty('--fragment-delay', `${slice * .07}s`);
+      glyph.append(fragment);
+    }
+    return glyph;
+  }));
+  words.classList.toggle('release-still', reducedMotion.matches || !prefs.motion);
+  const glyphs = [...words.children];
+  glyphs.forEach((glyph, index) => {
+    const rect = glyph.getBoundingClientRect();
+    const angle = index * 2.399963 + Math.random() * .25;
+    const radius = Math.sqrt((index + .5) / glyphs.length);
+    const targetX = innerWidth * (.5 + Math.cos(angle) * radius * .72);
+    const targetY = innerHeight * (.5 + Math.sin(angle) * radius * .68);
+    glyph.style.setProperty('--release-x', `${targetX - rect.left - rect.width / 2}px`);
+    glyph.style.setProperty('--release-y', `${targetY - rect.top - rect.height / 2}px`);
+    glyph.style.setProperty('--release-turn', `${Math.sin(angle) * 80}deg`);
+    glyph.style.setProperty('--release-delay', `${index * .01}s`);
+  });
+  words.classList.add('release'); $('thought').value = '';
+  clearTimeout(releaseTimeout); releaseTimeout = setTimeout(() => {
+    words.classList.remove('release'); words.textContent = ''; effects.replaceChildren();
+  }, 9000);
   scene.disturb(innerWidth * .35, innerHeight * .77);
 });
 $('help').addEventListener('click', () => $('help-dialog').showModal());
@@ -179,6 +220,7 @@ $('confirm-clear').addEventListener('click', () => {
   clearTimeout(taskTimeout); clearTimeout(releaseTimeout);
   records = []; prefs = { ...sanitizePreferences(), motion: !reducedMotion.matches }; task = ''; timer = new FocusTimer();
   $('task').value = ''; $('thought').value = ''; $('water-words').textContent = ''; $('water-words').classList.remove('release');
+  $('release-effects').replaceChildren();
   let removed = true;
   try { storage.removeItem(STORAGE_KEY); } catch { removed = false; }
   $('clear-dialog').close(); renderWeather(); renderTimer(); updateSummary();

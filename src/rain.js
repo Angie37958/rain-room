@@ -99,7 +99,7 @@ export class RainScene {
       const bent = this.interaction.bend(d, p.x, p.y, W, H, dt);
       const ox = bent.x - p.x, oy = bent.y - p.y;
       const bow = Math.min(1, Math.hypot(q.x - p.x, q.y - p.y) / 35);
-      ctx.strokeStyle = `rgba(${cool ? '228,244,255' : autumn ? '255,239,207' : '244,255,221'},${(.20 + .45 / (1 + d.z * .12)) * light * (1 - bent.strength * .5)})`; ctx.lineWidth = d.z < 5 ? 1.1 : .7;
+      ctx.strokeStyle = `rgba(${cool ? '228,244,255' : autumn ? '255,239,207' : '244,255,221'},${(.20 + .45 / (1 + d.z * .12)) * light * (1 - bent.strength * .08)})`; ctx.lineWidth = d.z < 5 ? 1.1 : .7;
       ctx.beginPath(); ctx.moveTo(bent.x, bent.y); ctx.quadraticCurveTo((p.x + q.x) * .5 + ox * (1 + bow * .025), (p.y + q.y) * .5 + oy, q.x + ox * (1 - bow * .14), q.y + oy); ctx.stroke();
     }
     for (let i = this.rings.length - 1; i >= 0; i--) {
@@ -130,7 +130,7 @@ export class RainScene {
       const { x, y } = bent;
       const length = (7 + d.length * 20) / depth;
       const curve = (x - baseX) * .10 * Math.min(1, length / 40);
-      c.strokeStyle = `rgba(65,99,119,${(.20 + .12 / depth) * this.options.light / 100 * (1 - bent.strength * .5)})`;
+      c.strokeStyle = `rgba(65,99,119,${(.20 + .12 / depth) * this.options.light / 100 * (1 - bent.strength * .08)})`;
       c.lineWidth = .5 + .45 / depth;
       c.beginPath(); c.moveTo(x, y); c.quadraticCurveTo(x + wind * length * .1 + curve, y + length * .5, x + wind * length * .3, y + length); c.stroke();
       c.strokeStyle = 'rgba(255,255,246,.35)'; c.lineWidth = .5;
@@ -183,9 +183,7 @@ export class RainScene {
       if (drop.y > .94) { drop.y = -.02; drop.x = random(.025, .975); }
       if (Math.abs(drop.x * W - glass.divider) < Math.max(6, W * .006)) continue;
       const baseX = drop.x * W + Math.sin(drop.y * 18 + drop.phase) * 2;
-      const bent = this.interaction.bend(drop, baseX, drop.y * H, W, H, dt);
-      const x = bent.x, y = bent.y, r = drop.r;
-      ctx.globalAlpha = 1 - bent.strength * .75;
+      const x = baseX, y = drop.y * H, r = drop.r;
       if (r > 2) {
         ctx.strokeStyle = 'rgba(240,247,250,.10)'; ctx.lineWidth = r * .25;
         ctx.beginPath(); ctx.moveTo(x + Math.sin(drop.phase), y - r * 9); ctx.quadraticCurveTo(x - 1, y - r * 3, x, y); ctx.stroke();

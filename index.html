@@ -15,6 +15,7 @@
 <body>
   <canvas id="rain" aria-hidden="true"></canvas>
   <div class="veil" aria-hidden="true"></div>
+<div class="release-water" aria-hidden="true"><div class="release-effects" id="release-effects"></div><div class="water-words" id="water-words"></div></div>
   <a class="skip-link" href="#workspace">跳转到专注计时</a>
   <header class="header">
     <a class="brand" href="./" aria-label="听雨首页"><span class="brand-mark" aria-hidden="true">☂</span><span>听雨<small>RAIN ROOM</small></span></a>
@@ -38,7 +39,6 @@
         <div class="completion" id="completion" hidden><p id="completion-text"></p><button id="next-session" class="secondary-button">休息 5 分钟</button></div>
       </div>
       <div class="daily-summary" aria-label="今日专注统计"><div><strong id="today-minutes">0</strong><span>分钟 · 今日专注</span></div><span class="divider"></span><div><strong id="today-sessions">0</strong><span>轮 · 已完成</span></div><p>一点一点，也在向前。</p></div>
-      <div class="release-water" aria-hidden="true"><div class="water-words" id="water-words"></div></div>
     </section>
     <aside class="side-panel" aria-label="雨景与休息工具">
       <details class="panel weather-panel" open><summary><span><span class="section-index">01 /</span> 此刻的氛围</span><span aria-hidden="true">⌄</span></summary><div class="panel-body">

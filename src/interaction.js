@@ -114,16 +114,28 @@ export class RainInteraction {
   reset() {
     this.pointer = { x: -1000, y: -1000, active: false, strength: 0 };
     this.target = { x: -1000, y: -1000, active: false };
-    this.trail = []; this.pulses = []; this.time = 0; this.lastWake = null;
+    this.motion = 0; this.trail = []; this.pulses = []; this.time = 0; this.lastWake = null;
     this.water = new WaterSurface();
   }
   move(x, y, active = true) {
+    if (active) {
+      if (!this.target.active) this.trail = [];
+      const last = this.trail.at(-1);
+      if (!last || Math.hypot(x - last.x, y - last.y) >= 1) {
+        this.trail.push({ x, y, age: 0 });
+        if (this.trail.length > 160) this.trail.shift();
+      }
+    }
     if (active && !this.target.active && this.pointer.strength < .05) {
       this.pointer.x = x; this.pointer.y = y;
     }
+    if (active && this.target.active) {
+      const distance = Math.hypot(x - this.target.x, y - this.target.y);
+      this.motion = Math.min(1, this.motion + distance / 100);
+    }
     this.target = { x, y, active };
   }
-  release() { this.target.active = false; }
+  release() { this.target.active = false; this.motion = 0; }
   wake(x, y, W, H, scene) {
     if (this.lastWake && (this.time - this.lastWake.time < .065 || Math.hypot(x - this.lastWake.x, y - this.lastWake.y) < 14)) return;
     if (!containsWater(scene, x, y, W, H)) return;
@@ -142,21 +154,17 @@ export class RainInteraction {
     const follow = 1 - Math.exp(-dt * 6);
     this.pointer.x += (this.target.x - this.pointer.x) * follow;
     this.pointer.y += (this.target.y - this.pointer.y) * follow;
-    this.pointer.strength += ((this.target.active ? 1 : 0) - this.pointer.strength) * (1 - Math.exp(-dt * 4));
+    this.pointer.strength += ((this.target.active ? this.motion : 0) - this.pointer.strength) * (1 - Math.exp(-dt * 4));
     this.pointer.active = this.pointer.strength > .005;
+    this.motion *= Math.exp(-dt * 7);
     for (const point of this.trail) point.age += dt;
-    this.trail = this.trail.filter(point => point.age < 1.5);
-    const last = this.trail.at(-1);
-    if (this.target.active && (!last || Math.hypot(this.pointer.x - last.x, this.pointer.y - last.y) > 4)) {
-      this.trail.push({ x: this.pointer.x, y: this.pointer.y, age: 0, phase: this.time * 17 });
-      if (this.trail.length > 40) this.trail.shift();
-    }
+    this.trail = this.trail.filter(point => point.age < .65);
     for (const pulse of this.pulses) pulse.age += dt;
     this.pulses = this.pulses.filter(pulse => pulse.age < 4.8);
     this.water.step(dt);
   }
   field(x, y, W, H) {
-    const radius = clamp(Math.min(W, H) * .28, 105, 190);
+    const radius = clamp(Math.min(W, H) * .10, 45, 80);
     let strongest = 0, offsetX = 0, offsetY = 0;
     const sample = (point, strength, r = radius) => {
       const dx = x - point.x, dy = y - point.y;
@@ -166,14 +174,10 @@ export class RainInteraction {
       if (influence <= strongest) return;
       strongest = influence;
       // A continuous direction field avoids flipping sides as the cursor passes.
-      offsetX = dx / Math.sqrt(dx * dx + 24 * 24) * r * .55 * influence;
-      offsetY = dy / Math.sqrt(distance * distance + 30 * 30) * r * .09 * influence;
+      offsetX = dx / Math.sqrt(dx * dx + 24 * 24) * r * .09 * influence;
+      offsetY = dy / Math.sqrt(distance * distance + 30 * 30) * r * .015 * influence;
     };
     if (this.pointer.active) sample(this.pointer, this.pointer.strength);
-    for (let i = 0; i < this.trail.length; i += 4) {
-      const point = this.trail[i]; sample(point, (1 - point.age / 1.5) * .20);
-    }
-    for (const pulse of this.pulses) if (pulse.age < .9) sample(pulse, Math.sin(Math.PI * pulse.age / .9) * .38);
     return { x: offsetX, y: offsetY, strength: strongest };
   }
   bend(particle, x, y, W, H, dt) {
@@ -188,28 +192,31 @@ export class RainInteraction {
   }
   draw(c, W, H, scene) {
     if (['forest', 'pond', 'spring'].includes(scene)) this.water.draw(c, W, H, scene);
-    const color = { spring: '248,204,221', pond: '204,238,224', forest: '248,218,165', lake: '217,238,252', day: '248,232,182', window: '237,212,173' }[scene];
+    if (this.trail.length < 2) return;
+    const points = this.trail, first = points[0], last = points.at(-1);
+    const tint = {
+      spring: '244,183,208', pond: '169,226,207', forest: '244,201,135',
+      lake: '181,216,246', day: '241,212,157', window: '234,192,145'
+    }[scene] || '221,226,211';
+    const fade = (1 - last.age / .65) ** 2;
+    const sheen = c.createLinearGradient(first.x, first.y, last.x, last.y);
+    sheen.addColorStop(0, `rgba(${tint},0)`);
+    sheen.addColorStop(.3, `rgba(${tint},${fade * .32})`);
+    sheen.addColorStop(.72, `rgba(${tint},${fade * .65})`);
+    sheen.addColorStop(1, `rgba(255,250,239,${fade * .85})`);
     c.save();
-    // Dew-like motes drift off a fine, fading thread; keep the native pointer.
-    for (let i = 0; i < this.trail.length; i++) {
-      const point = this.trail[i], u = point.age / 1.5;
-      const x = point.x + Math.sin(point.phase + u * 3) * u * 8;
-      const y = point.y - u * 9 + Math.cos(point.phase) * u * 4;
-      if (i > 0) {
-        const previous = this.trail[i - 1];
-        c.strokeStyle = `rgba(${color},${(1 - u) * .20})`; c.lineWidth = .9;
-        c.beginPath(); c.moveTo(previous.x, previous.y); c.lineTo(x, y); c.stroke();
-      }
-      c.fillStyle = `rgba(${color},${(1 - u) ** 1.8 * .65})`;
-      c.beginPath(); c.arc(x, y, .6 + (1 - u) * 1.3, 0, Math.PI * 2); c.fill();
+    c.strokeStyle = sheen; c.lineCap = 'round'; c.lineJoin = 'round';
+    // Both layers share one continuous curve, keeping even fast gestures connected.
+    c.beginPath(); c.moveTo(first.x, first.y);
+    for (let i = 1; i < points.length - 1; i++) {
+      const point = points[i], next = points[i + 1];
+      c.quadraticCurveTo(point.x, point.y, (point.x + next.x) / 2, (point.y + next.y) / 2);
     }
-    if (this.pointer.active) {
-      const { x, y, strength } = this.pointer;
-      const radius = 16 + Math.sin(this.time * 1.8) * 2;
-      const glow = c.createRadialGradient(x, y, 0, x, y, radius);
-      glow.addColorStop(0, `rgba(${color},${strength * .22})`); glow.addColorStop(1, `rgba(${color},0)`);
-      c.fillStyle = glow; c.fillRect(x - radius, y - radius, radius * 2, radius * 2);
-    }
-    c.restore();
+    c.lineTo(last.x, last.y);
+    c.lineWidth = 3.2; c.globalAlpha = .28;
+    c.shadowColor = `rgba(${tint},${fade * .6})`; c.shadowBlur = 9;
+    c.stroke();
+    c.shadowBlur = 0; c.globalAlpha = 1; c.lineWidth = 1.35;
+    c.stroke(); c.restore();
   }
 }
