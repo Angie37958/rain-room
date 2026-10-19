@@ -1,3 +1,4 @@
+import { waterPath } from './interaction.js';
 import { paintCoolEnvironment } from './cool-environments.js';
 import { paintWindow } from './window-environment.js';
 import { paintSeason, paintIce } from './seasonal-environments.js';
@@ -44,7 +45,7 @@ export function createEnvironment(width, height, scene, brightness, ratio = 1) {
   c.fillStyle = mist; c.fillRect(0, H * .28, W, H * .44);
   const water = c.createLinearGradient(0, H * .62, 0, H);
   water.addColorStop(0, autumn ? '#cfb68b' : '#a7bea0'); water.addColorStop(.3, autumn ? '#b19870' : '#7fa384'); water.addColorStop(1, autumn ? '#756f57' : '#47795d');
-  c.fillStyle = water; c.beginPath(); c.moveTo(0, H * .69); c.bezierCurveTo(W * .22, H * .57, W * .7, H * .68, W, H * .59); c.lineTo(W, H); c.lineTo(0, H); c.fill();
+  c.fillStyle = water; waterPath(c, W, H, scene); c.fill();
   for (let i = 0; i < 130; i++) {
     const x = range(0, W), y = range(H * .67, H), length = range(8, 75);
     c.strokeStyle = `rgba(226,243,193,${range(.025, .12)})`; c.lineWidth = range(.5, 1.5);

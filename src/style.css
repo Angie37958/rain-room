@@ -570,6 +570,11 @@ input[type=range] {
   color:#b2cdc1;
   pointer-events:none;
 }
+.immersed {
+  overflow:hidden;
+  overscroll-behavior:none;
+  touch-action:pinch-zoom;
+}
 .immersed main,.immersed .footer,.immersed .brand,.immersed .header-caption {
   visibility:hidden;
 }

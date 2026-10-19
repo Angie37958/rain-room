@@ -1,3 +1,4 @@
+import { waterPath } from './interaction.js';
 /** Seasonal landscapes share the original layered, softly coloured Canvas style. */
 export function paintSeason(c, W, H, scene, brightness, random) {
   const range = (a, b) => a + random() * (b - a), spring = scene === 'spring';
@@ -21,7 +22,7 @@ export function paintSeason(c, W, H, scene, brightness, random) {
   if (spring) {
     // A pale stream and flowering branches make spring distinct from a green pond.
     const stream = c.createLinearGradient(0, H * .64, 0, H); stream.addColorStop(0, '#c9d8d4'); stream.addColorStop(1, '#85b2b9');
-    c.fillStyle = stream; c.beginPath(); c.moveTo(W * .62, H * .66); c.bezierCurveTo(W * .4, H * .79, W * .82, H * .85, W * .22, H); c.lineTo(W * .76, H); c.bezierCurveTo(W * .98, H * .85, W * .54, H * .78, W * .66, H * .66); c.fill();
+    c.fillStyle = stream; waterPath(c, W, H, scene); c.fill();
     c.strokeStyle = '#f8eee040'; c.lineWidth = 1;
     for (let i = 0; i < 50; i++) { const x = range(.35, .7) * W, y = range(.78, 1) * H; c.beginPath(); c.moveTo(x, y); c.lineTo(x + range(8, 40), y); c.stroke(); }
     for (const [x, lean, width] of [[.035, .02, .035], [.98, -.02, .03]]) {

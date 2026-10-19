@@ -151,11 +151,17 @@ document.addEventListener('keydown', event => {
   if (event.target.closest('button,a,summary')) return;
   if (event.code === 'Space') { event.preventDefault(); startOrPause(); }
 });
-document.addEventListener('pointermove', event => { scene.pointer = { x: event.clientX, y: event.clientY, active: event.pointerType !== 'touch' }; });
-document.addEventListener('pointerout', event => { if (!event.relatedTarget) scene.pointer.active = false; });
+const interactionControls = 'button,input,textarea,select,a,summary,.panel,.timer-card,.daily-summary,.intro,.header,.footer,dialog';
+document.addEventListener('pointermove', event => {
+  scene.movePointer(event.clientX, event.clientY, !event.target.closest(interactionControls));
+}, { passive: true });
+document.addEventListener('pointerout', event => { if (!event.relatedTarget) scene.releasePointer(); });
+document.addEventListener('pointerup', event => { if (event.pointerType === 'touch') scene.releasePointer(); });
+document.addEventListener('pointercancel', () => scene.releasePointer());
+window.addEventListener('blur', () => scene.releasePointer());
 document.addEventListener('pointerdown', event => {
-  if (!event.target.closest('button,input,textarea,select,summary,.panel,.timer-card,.daily-summary,.intro,.header,.footer,dialog')) scene.disturb(event.clientX, event.clientY);
-});
+  if (!event.target.closest(interactionControls)) scene.disturb(event.clientX, event.clientY);
+}, { passive: true });
 $('release-form').addEventListener('submit', event => {
   event.preventDefault(); const thought = $('thought').value.trim();
   if (!thought) { notify('写下一句想暂时放下的话，再交给雨。'); $('thought').focus(); return; }

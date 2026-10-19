@@ -5,7 +5,7 @@ const FILES = /* PRECACHE_FILES */ [
   './assets/icon.svg', './assets/icon-192.png', './assets/icon-512.png', './assets/icon-maskable-512.png',
   './assets/audio/gentle-rain.mp3', './assets/audio/light-rain.mp3',
   './src/app.js', './src/install.js', './src/style.css', './src/scene-themes.css',
-  './src/audio.js', './src/recordings.js', './src/rain-sound.js', './src/rain.js',
+  './src/interaction.js', './src/audio.js', './src/recordings.js', './src/rain-sound.js', './src/rain.js',
   './src/environment.js', './src/seasonal-environments.js', './src/cool-environments.js',
   './src/window-environment.js', './src/scenes.js', './src/storage.js', './src/timer.js'
 ];
