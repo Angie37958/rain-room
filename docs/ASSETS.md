@@ -22,7 +22,7 @@
 
 # 窗边写实素材
 
-**v0.6 起已停用。** 当前场景统一使用代码绘制的插画；下述图片仅为 v0.5 原型的历史素材，不被页面加载，也不进入 `dist/` 构建。
+**v0.6 起已停用。** 当前场景使用用户确认的 AI 生成纸艺插画，Canvas 另绘制动态；下述图片仅为 v0.5 原型的历史素材，不被页面加载，也不进入 `dist/` 构建。
 
 文件：`assets/window-night.png`。2026-10-19 使用内置 ImageGen 工具生成，未使用 API / CLI fallback。图片已复制到项目中，浏览器只加载本地资源。不是摄影实拍；场景中的大部分雨珠来自静态图片，页面在玻璃区域叠加少量实时滑滴。
 
@@ -31,3 +31,7 @@
 ## 最终生成提示词
 
 Use case: photorealistic-natural. Asset type: full-screen website background photograph, wide landscape 16:9 composition. Primary request: a believable quiet dim apartment desk beside a rain-covered window at night, lit by one warm yellow desk lamp. Camera is inside the room at seated eye level looking toward a large real window, no people. The small desk lamp sits at the far left of the wooden desk, shade center around 11% of image width and 66% of image height, base near the bottom; lamp has a simple oatmeal linen shade with visible fine weave, a slender dark brass stem, emits soft amber 2400K light pooling naturally across richly textured dark walnut desk. Window occupies central and right upper scene with uneven rain beads and a few thin rivulets, barely visible distant defocused cool slate city lights and sparse muted amber bokeh, physically plausible tiny droplets, no graphic rain streaks. The room is really dark and intimate but not black; cool blue-grey night beyond glass contrasts with warm soft lamplight, natural gentle falloff and subtle reflection of lamp in window. The table spans bottom 22% of frame, one closed plain book near the lamp, otherwise uncluttered. Large central area should be low contrast, dark and suitable for overlaying a focus timer, right central area similarly quiet for controls. Style: real interior photography, tactile materials, slight natural film grain, soft photographic depth of field, realistic lens, physically correct perspective, no illustration, no cartoon, no vector, no game render, no hard-edged glow or surreal geometry. No text, no numbers, no watermark, no UI, no border. Generate a finished high-quality background photograph.
+
+## v0.14 纸艺定稿
+
+六张场景位于 `assets/scenes/*.webp`，通过内置 ImageGen 生成、经用户逐张选择后压缩入包。并非真实摄影。所有背景与音频均本地加载。晴日和冬湖使用柔和合成风声，其他场景使用上文两段 CC0 雨声。风铃、蝴蝶和小舟目前是静态背景元素；雨线、花瓣、落叶、飘雪、涟漪与窗上滑滴为实时动态。

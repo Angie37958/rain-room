@@ -1,41 +1,17 @@
+import { artworkPlacement, artworkPoint } from './environment.js';
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
 /** The same water outlines used to paint the landscapes also clip the waves. */
 export function waterPath(c, W, H, scene) {
-  c.beginPath();
-  if (scene === 'spring') {
-    c.moveTo(W * .62, H * .66);
-    c.bezierCurveTo(W * .4, H * .79, W * .82, H * .85, W * .22, H);
-    c.lineTo(W * .76, H);
-    c.bezierCurveTo(W * .98, H * .85, W * .54, H * .78, W * .66, H * .66);
-  } else {
-    c.moveTo(0, H * .69);
-    c.bezierCurveTo(W * .22, H * .57, W * .7, H * .68, W, H * .59);
-    c.lineTo(W, H); c.lineTo(0, H);
-  }
-  c.closePath();
+  const p = artworkPlacement(W, H);
+  c.beginPath(); c.rect(p.x + p.width * .53, p.y + p.height * .08, p.width * .3, p.height * .83); c.closePath();
 }
-
-function bezier(a, b, c, d, t) { const u = 1 - t; return u ** 3 * a + 3 * u * u * t * b + 3 * u * t * t * c + t ** 3 * d; }
 export function containsWater(scene, x, y, W, H) {
   if (!['forest', 'pond', 'spring'].includes(scene) || !W || !H) return false;
-  x /= W; y /= H;
-  const polygon = [];
-  const curve = (a, b, c, d) => {
-    for (let i = 0; i <= 32; i++) { const t = i / 32; polygon.push([bezier(a[0], b[0], c[0], d[0], t), bezier(a[1], b[1], c[1], d[1], t)]); }
-  };
-  if (scene === 'spring') {
-    curve([.62, .66], [.4, .79], [.82, .85], [.22, 1]);
-    polygon.push([.76, 1]); curve([.76, 1], [.98, .85], [.54, .78], [.66, .66]);
-  } else {
-    curve([0, .69], [.22, .57], [.7, .68], [1, .59]); polygon.push([1, 1], [0, 1]);
-  }
-  let inside = false;
-  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-    const [a, b] = polygon[i], [c, d] = polygon[j];
-    if ((b > y) !== (d > y) && x < (c - a) * (y - b) / (d - b) + a) inside = !inside;
-  }
-  return inside;
+  const p = artworkPoint(x, y, W, H);
+  // Conservative open-water corridor: never ripple over the torn botanical bank.
+  if (scene === 'pond' && ((p.x-.63)/.1)**2 + ((p.y-.7)/.1)**2 < 1) return false;
+  return p.x > .53 && p.x < .83 && p.y > .08 && p.y < .91;
 }
 
 /** A damped two-dimensional water height field, rather than drawn circles. */
@@ -105,7 +81,7 @@ export class WaterSurface {
     }
     this.context.putImageData(this.image, 0, 0);
     c.save(); waterPath(c, W, H, scene); c.clip();
-    c.imageSmoothingEnabled = true; c.drawImage(this.canvas, 0, H * .60, W, H * .40); c.restore();
+    c.imageSmoothingEnabled = true; c.drawImage(this.canvas, 0, 0, W, H); c.restore();
   }
 }
 
@@ -139,7 +115,7 @@ export class RainInteraction {
   wake(x, y, W, H, scene) {
     if (this.lastWake && (this.time - this.lastWake.time < .065 || Math.hypot(x - this.lastWake.x, y - this.lastWake.y) < 14)) return;
     if (!containsWater(scene, x, y, W, H)) return;
-    this.water.disturb(x / W, (y / H - .60) / .40, .22);
+    this.water.disturb(x / W, y / H, .22);
     this.lastWake = { x, y, time: this.time };
   }
   tap(x, y, W, H, scene) {
@@ -147,7 +123,7 @@ export class RainInteraction {
     const water = containsWater(scene, x, y, W, H);
     this.pulses.push({ x, y, age: 0, water, scene });
     if (this.pulses.length > 12) this.pulses.shift();
-    if (water) this.water.disturb(x / W, (y / H - .60) / .40, 1.7);
+    if (water) this.water.disturb(x / W, y / H, 1.7);
   }
   step(dt) {
     dt = clamp(dt, 0, .05); this.time += dt;

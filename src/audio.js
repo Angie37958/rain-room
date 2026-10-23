@@ -1,4 +1,22 @@
-import { synthesizeRain } from './rain-sound.js';
+// A seamless, softly filtered noise bed; intentionally no simulated bird calls.
+export function synthesizeBreeze(rate, seconds, random = Math.random) {
+  const n = Math.round(rate * seconds);
+  return Array.from({ length: 2 }, (_, channel) => {
+    const samples = new Float32Array(n); let low = 0;
+    for (let i = 0; i < n; i++) {
+      low += ((random() * 2 - 1) - low) * .025;
+      const phase = i / n * Math.PI * 2;
+      samples[i] = low * (.65 + .18 * Math.sin(phase * 3 + channel) + .1 * Math.sin(phase * 7));
+    }
+    // Crossfade both ends to avoid a click at the loop boundary.
+    const edge = Math.min(rate, Math.floor(n / 4));
+    for (let i = 0; i < edge; i++) {
+      const t = i / edge, a = samples[i], b = samples[n-edge+i];
+      samples[i] = b * (1-t) + a*t;
+    }
+    return samples.slice(0, n-edge);
+  });
+}
 import { RECORDINGS, rainMix, loopChannel } from './recordings.js';
 export { rainMix } from './recordings.js';
 
@@ -23,7 +41,7 @@ export class RainAudio {
       const decoded = await context.decodeAudioData(await response.arrayBuffer());
       return [kind, Array.from({ length: decoded.numberOfChannels }, (_, i) => loopChannel(decoded.getChannelData(i), decoded.sampleRate)), decoded.sampleRate];
     }));
-    recordings.push(['wind', synthesizeRain('bed', context.sampleRate, 11), context.sampleRate]);
+    recordings.push(['wind', synthesizeBreeze(context.sampleRate, 23), context.sampleRate]);
     for (const [kind, channels, rate] of recordings) {
       const buffer = context.createBuffer(channels.length, channels[0].length, rate);
       // One shared gain preserves stereo balance. Leave headroom for overlaps.

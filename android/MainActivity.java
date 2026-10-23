@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.View;
 import android.webkit.*;
 import android.widget.Toast;
 import java.io.*;
@@ -19,10 +20,11 @@ public final class MainActivity extends Activity {
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
-        getWindow().setStatusBarColor(Color.rgb(197,174,137));
-        getWindow().setNavigationBarColor(Color.rgb(197,174,137));
+        getWindow().setStatusBarColor(Color.rgb(239,233,216));
+        getWindow().setNavigationBarColor(Color.rgb(239,233,216));
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
         web = new WebView(this);
-        web.setBackgroundColor(Color.rgb(197,174,137));
+        web.setBackgroundColor(Color.rgb(239,233,216));
         WebSettings settings = web.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
@@ -41,7 +43,7 @@ public final class MainActivity extends Activity {
                 try {
                     String mime = path.endsWith(".js") ? "text/javascript" : path.endsWith(".css") ? "text/css"
                         : path.endsWith(".html") ? "text/html" : path.endsWith(".mp3") ? "audio/mpeg"
-                        : path.endsWith(".svg") ? "image/svg+xml" : path.endsWith(".png") ? "image/png"
+                        : path.endsWith(".svg") ? "image/svg+xml" : path.endsWith(".png") ? "image/png" : path.endsWith(".webp") ? "image/webp"
                         : "application/json";
                     return new WebResourceResponse(mime, "UTF-8", 200, "OK",
                         Collections.singletonMap("Cache-Control", "no-store"), getAssets().open("web/" + path));
@@ -99,7 +101,7 @@ public final class MainActivity extends Activity {
     @Override protected void onPause() { super.onPause(); web.onPause(); }
     @Override protected void onResume() { super.onResume(); if (web != null) web.onResume(); }
     @Override public void onBackPressed() {
-        web.evaluateJavascript("(() => { const d=document.querySelector('dialog[open]'); if(d){d.close();return true;} if(document.body.classList.contains('immersed')){document.getElementById('immerse').click();return true;} return false; })()",
+        web.evaluateJavascript("(() => { const d=document.querySelector('dialog[open]'); if(d){d.close();return true;} if(matchMedia('(max-width:720px), (max-width:1000px) and (max-height:520px)').matches && document.body.dataset.mobilePanel && document.body.dataset.mobilePanel!=='scene'){document.querySelector('[data-mobile-tab=scene]').click();return true;} if(document.body.classList.contains('immersed')){document.getElementById('immerse').click();return true;} return false; })()",
             handled -> { if (!"true".equals(handled)) super.onBackPressed(); });
     }
     @Override protected void onDestroy() { web.removeJavascriptInterface("RainRoomAndroid"); web.destroy(); super.onDestroy(); }

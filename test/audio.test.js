@@ -29,7 +29,8 @@ test('recordings load once, mute gently, and change to wind without losing the s
   assert.equal(fetch.mock.calls.length, 2);
   assert.ok(audio.layers.bed.gain.value > 0);
   audio.setWeather({ scene: 'day' });
-  assert.ok(audio.layers.detail.gain.value > 0);
+  assert.equal(audio.layers.detail.gain.value, 0);
+  assert.ok(audio.layers.wind.gain.value > 0);
   audio.setWeather({ scene: 'lake' });
   assert.equal(audio.layers.bed.gain.value, 0); assert.equal(audio.layers.detail.gain.value, 0);
   assert.ok(audio.layers.wind.gain.value > 0);

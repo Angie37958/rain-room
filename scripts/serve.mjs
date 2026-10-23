@@ -7,7 +7,7 @@ const root = process.argv.includes('--dist') ? path.join(project, 'dist') : proj
 const portIndex = process.argv.indexOf('--port');
 const port = Number(portIndex === -1 ? process.env.PORT || 5173 : process.argv[portIndex + 1]);
 if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('Invalid port');
-const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.mp3': 'audio/mpeg', '.webmanifest': 'application/manifest+json' };
+const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.webp': 'image/webp', '.mp3': 'audio/mpeg', '.webmanifest': 'application/manifest+json' };
 const server = http.createServer(async (request, response) => {
   try {
     if (!['GET', 'HEAD'].includes(request.method)) { response.writeHead(405); response.end(); return; }

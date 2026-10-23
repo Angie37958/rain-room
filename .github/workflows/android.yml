@@ -43,6 +43,6 @@ jobs:
         with:
           name: rain-room-android
           path: |
-            android/build/rain-room-0.12.1.apk
-            android/build/rain-room-0.12.1.apk.sha256
+            android/build/rain-room-*.apk
+            android/build/rain-room-*.apk.sha256
             android/build/smoke/

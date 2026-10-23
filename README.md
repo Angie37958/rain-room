@@ -4,18 +4,18 @@
 
 选一处雨景，听一会儿雨，做完眼前的一件事。也可以什么都不做，把暂时放不下的话交给雨。
 
-[打开听雨](https://angie37958.github.io/rain-room/) · [下载安卓安装包](https://github.com/Angie37958/rain-room/releases/download/android-v0.12.1/rain-room-0.12.1.apk) · [手机安装说明](#安装到手机)
+[打开听雨](https://angie37958.github.io/rain-room/) · [下载安卓安装包](https://github.com/Angie37958/rain-room/releases/download/android-v0.14.0/rain-room-0.14.0.apk) · [手机安装说明](#安装到手机)
 
 ![听雨桌面预览](./docs/images/desktop.jpg)
 
 ## 找一处此刻想待的地方
 
-- **樱花 · 想重新开始**，粉白花枝、溪水与飘落的花瓣。
+- **樱花 · 想重新开始**，嫩柳、春燕、樱花与飘落花瓣。
 - **荷塘 · 想放慢一点**，浮叶、水光与近处的落雨。
 - **秋林 · 想找回一点温暖**，金黄树影、橙红落叶与暖色水面。
 - **冻湖 · 想留点空白**，蓝白冰面、缓慢落雪与柔和风声。
-- **晴日 · 想出去透透气**，阳光、白云、野花与太阳雨。
-- **窗边 · 想安静待一会儿**，夜雨、暖光与摊开的书。
+- **晴日 · 想出去透透气**，树影、光斑、双蝶与柔和风声。
+- **窗边 · 想安静待一会儿**，蓝调雨夜、暖灯与沿窗滑落的水滴。
 
 ## 怎么用
 
@@ -41,7 +41,7 @@
 
 ### 安卓手机
 
-**[下载听雨 APK（约 1.8 MB）](https://github.com/Angie37958/rain-room/releases/download/android-v0.12.1/rain-room-0.12.1.apk)** · Android 8.0 及以上
+**[下载听雨 APK（约 3.2 MB）](https://github.com/Angie37958/rain-room/releases/download/android-v0.14.0/rain-room-0.14.0.apk)** · Android 8.0 及以上
 
 1. 在手机上下载 APK，或者从电脑把文件发送到手机。
 2. 在手机上打开下载的文件，按系统提示允许该来源安装，完成安装。

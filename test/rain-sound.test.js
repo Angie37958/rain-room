@@ -23,7 +23,7 @@ test('recorded rain preserves detail outdoors and is softened through the window
   const forest = rainMix({ scene: 'forest' }), window = rainMix({ scene: 'window' });
   assert.ok(window.cutoff < forest.cutoff);
   assert.ok(window.levels.detail < forest.levels.detail);
-  for (const scene of ['spring', 'day', 'pond', 'forest', 'window']) {
+  for (const scene of ['spring', 'pond', 'forest', 'window']) {
     const mix = rainMix({ scene, texture: 100 });
     assert.ok(mix.levels.bed > 0); assert.ok(mix.levels.detail > 0);
     assert.equal(mix.levels.wind, 0);

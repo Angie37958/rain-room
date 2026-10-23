@@ -6,6 +6,7 @@ export const RECORDINGS = {
 export function rainMix({ amount = 65, texture = 75, scene = 'forest' } = {}) {
   const rain = Math.max(0, Math.min(1, amount / 100));
   const detail = Math.max(0, Math.min(1, texture / 100));
+  if (scene === 'day') return { cutoff: 1500 + detail * 2000, levels: { bed: 0, detail: 0, wind: .32 + rain * .22 } };
   if (scene === 'lake') return { cutoff: 1000 + detail * 1400, levels: { bed: 0, detail: 0, wind: .6 + rain * .3 } };
   const sheltered = scene === 'window';
   return {

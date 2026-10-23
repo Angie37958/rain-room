@@ -4,15 +4,16 @@ import { RainInteraction, containsWater, WaterSurface } from '../src/interaction
 
 test('water taps stay at their screen-space origin, including near and distant water', () => {
   const interaction = new RainInteraction();
-  for (const [x, y] of [[700, 650], [200, 880]]) {
+  for (const [x, y] of [[320, 180], [420, 760]]) {
     interaction.tap(x, y, 1200, 900, 'pond');
     const pulse = interaction.pulses.at(-1);
     assert.equal(pulse.x, x); assert.equal(pulse.y, y); assert.equal(pulse.water, true);
   }
+  assert.equal(containsWater('pond', 40, 750, 390, 844), false, 'leaf-covered banks do not ripple');
   assert.equal(containsWater('forest', 600, 200, 1200, 900), false);
   assert.equal(containsWater('day', 600, 800, 1200, 900), false);
   assert.equal(containsWater('lake', 600, 800, 1200, 900), false);
-  assert.equal(containsWater('spring', 620, 900, 1000, 1000), true);
+  assert.equal(containsWater('spring', 400, 850, 1000, 1000), true);
   assert.equal(containsWater('spring', 40, 900, 1000, 1000), false);
 });
 

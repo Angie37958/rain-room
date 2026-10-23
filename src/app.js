@@ -3,7 +3,7 @@ import { FocusTimer, validMinutes, formatTime, sanitizeRecords, addCompletion, t
 import { STORAGE_KEY, loadData, sanitizePreferences } from './storage.js';
 import { RainAudio } from './audio.js';
 import { RainScene } from './rain.js';
-import { SCENES } from './scenes.js';
+import { SCENES, SCENE_ORDER } from './scenes.js';
 
 const $ = id => document.getElementById(id);
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -33,6 +33,7 @@ function text(id, value) { if ($(id).textContent !== String(value)) $(id).textCo
 function updateSummary() {
   const summary = todaySummary(records);
   text('today-minutes', summary.minutes); text('today-sessions', summary.sessions);
+  text('mobile-summary', `今日 ${summary.minutes} 分钟 · ${summary.sessions} 轮专注`);
 }
 function renderTimer() {
   const time = formatTime(timer.remaining), isFocus = timer.mode === 'focus', complete = timer.status === 'complete';
@@ -106,18 +107,19 @@ function renderWeather() {
   document.body.dataset.scene = prefs.scene;
   document.documentElement.dataset.scene = prefs.scene;
   const atmosphere = SCENES[prefs.scene];
+  text('mobile-scene-name', $('scene').selectedOptions[0].textContent);
   text('focus-heading', atmosphere.heading); text('scene-description', atmosphere.description);
   text('scene-mood', atmosphere.mood); text('interaction-hint', atmosphere.hint);
-  const snow = prefs.scene === 'lake';
-  text('amount-label', snow ? '飘雪密度' : '雨量');
-  text('texture-label', snow ? '风声层次' : '雨声细节');
+  const snow = prefs.scene === 'lake', sunny = prefs.scene === 'day';
+  text('amount-label', snow ? '飘雪密度' : sunny ? '飘叶密度' : prefs.scene === 'spring' ? '雨与花瓣' : prefs.scene === 'forest' ? '雨与落叶' : '雨量');
+  text('texture-label', snow || sunny ? '风声层次' : '雨声细节');
   $('wind').disabled = prefs.scene === 'window';
   if (prefs.scene === 'window') text('wind-value', '隔窗无风');
   text('light-label', prefs.scene === 'window' ? '室内明暗' : '环境亮度');
-  text('sound-hint', snow ? '柔和底声 ↔ 轻轻的风' : prefs.scene === 'window' ? '实录雨声 · 隔窗柔化，保留细小滴答' : '实录雨声 · 绵密雨幕 ↔ 清晰落雨');
-  document.querySelector('meta[name="theme-color"]').content = { spring: '#e3ced8', pond: '#c5d4ae', forest: '#d3b38a', lake: '#b7cfdf', day: '#c2ddce', window: '#111619' }[prefs.scene];
+  text('sound-hint', sunny ? '柔和合成微风 · 树荫下安静坐一会儿' : snow ? '柔和底声 ↔ 轻轻的风' : prefs.scene === 'window' ? '实录雨声 · 隔窗柔化，保留细小滴答' : '实录雨声 · 绵密雨幕 ↔ 清晰落雨');
+  document.querySelector('meta[name="theme-color"]').content = '#efe9d8';
   document.querySelectorAll('[data-preset]').forEach(button => {
-    const names = snow ? { drizzle: '小雪', night: '中雪', storm: '大雪' } : { drizzle: '细雨', night: '中雨', storm: '骤雨' };
+    const names = sunny ? { drizzle: '轻风', night: '微风', storm: '清风' } : snow ? { drizzle: '小雪', night: '中雪', storm: '大雪' } : { drizzle: '细雨', night: '中雨', storm: '骤雨' };
     button.textContent = names[button.dataset.preset];
     const selected = Object.entries(presets[button.dataset.preset]).every(([key, value]) => prefs[key] === value);
     button.classList.toggle('selected', selected); button.setAttribute('aria-pressed', selected);
@@ -127,6 +129,28 @@ function renderWeather() {
 for (const key of ['amount', 'wind', 'light', 'volume', 'texture']) $(key).addEventListener('input', () => { prefs[key] = Number($(key).value); renderWeather(); save(); });
 for (const key of ['motion', 'chime', 'quality', 'scene']) $(key).addEventListener('change', () => { prefs[key] = ['quality', 'scene'].includes(key) ? $(key).value : $(key).checked; renderWeather(); save(); });
 document.querySelectorAll('[data-preset]').forEach(button => button.addEventListener('click', () => { Object.assign(prefs, presets[button.dataset.preset]); renderWeather(); save(); }));
+// Keep account/update controls inside the scrolling settings sheet on phones.
+const mobileLayout = matchMedia('(max-width:720px), (max-width:1000px) and (max-height:520px)');
+const footer = document.querySelector('.footer');
+const footerHome = document.createComment('footer position'); footer.before(footerHome);
+function arrangeMobileLayout() {
+  if (mobileLayout.matches) document.querySelector('.side-panel').append(footer);
+  else footerHome.after(footer);
+}
+mobileLayout.addEventListener('change', arrangeMobileLayout); arrangeMobileLayout();
+function showMobilePanel(panel) {
+  document.body.dataset.mobilePanel = panel;
+  document.querySelectorAll('[data-mobile-tab]').forEach(button => button.setAttribute('aria-pressed', button.dataset.mobileTab === panel));
+  if (panel === 'settings') document.querySelector('.weather-panel').open = true;
+}
+document.querySelectorAll('[data-mobile-tab]').forEach(button => button.addEventListener('click', () => {
+  showMobilePanel(document.body.dataset.mobilePanel === button.dataset.mobileTab ? 'scene' : button.dataset.mobileTab);
+}));
+$('mobile-scene-name').addEventListener('click', () => showMobilePanel('settings'));
+for (const [id, step] of [['scene-prev', -1], ['scene-next', 1]]) $(id).addEventListener('click', () => {
+  prefs.scene = SCENE_ORDER[(SCENE_ORDER.indexOf(prefs.scene) + step + SCENE_ORDER.length) % SCENE_ORDER.length];
+  renderWeather(); save();
+});
 $('sound').addEventListener('click', async () => {
   $('sound').disabled = true; text('sound', '正在准备声音…');
   try { const enabled = await audio.toggle(); text('sound', enabled ? '关闭声音' : '开启声音'); $('sound').setAttribute('aria-pressed', enabled); }
@@ -145,13 +169,14 @@ function immerse() {
 }
 $('immerse').addEventListener('click', immerse);
 document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && mobileLayout.matches && !document.querySelector('dialog[open]')) showMobilePanel('scene');
   if (event.ctrlKey || event.altKey || event.metaKey || event.repeat || document.querySelector('dialog[open]')) return;
   if (event.target.closest('input,textarea,select,[contenteditable]')) return;
   if (event.key.toLowerCase() === 'h') immerse();
   if (event.target.closest('button,a,summary')) return;
   if (event.code === 'Space') { event.preventDefault(); startOrPause(); }
 });
-const interactionControls = 'button,input,textarea,select,a,summary,.panel,.timer-card,.daily-summary,.intro,.header,.footer,dialog';
+const interactionControls = '.mobile-nav,.mobile-scene-switch,button,input,textarea,select,a,summary,.panel,.timer-card,.daily-summary,.intro,.header,.footer,dialog';
 document.addEventListener('pointermove', event => {
   scene.movePointer(event.clientX, event.clientY, !event.target.closest(interactionControls));
 }, { passive: true });
@@ -207,6 +232,7 @@ $('release-form').addEventListener('submit', event => {
     glyph.style.setProperty('--release-delay', `${index * .01}s`);
   });
   words.classList.add('release'); $('thought').value = '';
+  $('thought').blur(); showMobilePanel('scene');
   clearTimeout(releaseTimeout); releaseTimeout = setTimeout(() => {
     words.classList.remove('release'); words.textContent = ''; effects.replaceChildren();
   }, 9000);
